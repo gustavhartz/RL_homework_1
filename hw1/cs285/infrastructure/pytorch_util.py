@@ -52,7 +52,7 @@ def build_mlp(
         _temp.append((f'layer{i}', nn.Linear(size, size)))
         _temp.append((f'activation{i}', activation))
     _temp.append((f'layer{i+1}', nn.Linear(size, output_size)))
-    _temp.append((f'activation{0}', output_activation))
+    _temp.append((f'activation{i+1}', output_activation))
 
     return nn.Sequential(OrderedDict(_temp))
 
