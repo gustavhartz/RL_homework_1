@@ -59,7 +59,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             )
             self.mean_net.to(ptu.device)
             self.logstd = nn.Parameter(
-                torch.zeros(self.ac_dim, dtype=torch.float32, device=ptu.device)
+                torch.zeros(self.ac_dim, dtype=torch.float32,
+                            device=ptu.device)
             )
             self.logstd.to(ptu.device)
             self.optimizer = optim.Adam(
@@ -81,7 +82,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             observation = obs[None]
 
         # TODO return the action that the policy prescribes
-        raise NotImplementedError
+        # This is just the forward pass to numpy
+        return ptu.to_numpy(self.forward(obs))
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
@@ -93,7 +95,12 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor) -> Any:
-        raise NotImplementedError
+        if self.discrete:
+            pred = self.logits_na(observation)
+        else:
+            pred = self.mean_net(observation)
+
+        return pred
 
 
 #####################################################
@@ -109,7 +116,21 @@ class MLPPolicySL(MLPPolicy):
             adv_n=None, acs_labels_na=None, qvals=None
     ):
         # TODO: update the policy and return the loss
-        loss = TODO
+        # Clear gradients w.r.t. parameters
+        self.optimizer.zero_grad()
+
+        # Forward pass to get output/logits
+        outputs = self.forward(observations)
+
+        # Calculate Loss: softmax --> cross entropy loss
+        loss = self.loss(outputs, actions)
+
+        # Getting gradients w.r.t. parameters
+        loss.backward()
+
+        # Updating parameters
+        self.optimizer.step()
+
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),
