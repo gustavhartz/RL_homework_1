@@ -83,7 +83,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
         # TODO return the action that the policy prescribes
         # This is just the forward pass to numpy
-        return ptu.to_numpy(self.forward(obs))
+        return ptu.to_numpy(self.forward(ptu.from_numpy(obs)))
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
