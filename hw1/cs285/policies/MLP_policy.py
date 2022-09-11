@@ -77,13 +77,12 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
     def get_action(self, obs: np.ndarray) -> np.ndarray:
         if len(obs.shape) > 1:
-            observation = obs
+            observation = ptu.from_numpy(obs)
         else:
-            observation = obs[None]
+            observation = ptu.from_numpy(obs[None])
 
         # TODO return the action that the policy prescribes
-        # This is just the forward pass to numpy
-        return ptu.to_numpy(self.forward(ptu.from_numpy(obs)))
+        return ptu.to_numpy(self.forward(observation))
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
@@ -120,10 +119,10 @@ class MLPPolicySL(MLPPolicy):
         self.optimizer.zero_grad()
 
         # Forward pass to get output/logits
-        outputs = self.forward(observations)
+        outputs = self.forward(ptu.from_numpy(observations))
 
         # Calculate Loss: softmax --> cross entropy loss
-        loss = self.loss(outputs, actions)
+        loss = self.loss(outputs, ptu.from_numpy(actions))
 
         # Getting gradients w.r.t. parameters
         loss.backward()
