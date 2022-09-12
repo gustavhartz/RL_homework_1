@@ -2,12 +2,10 @@ import abc
 import itertools
 from typing import Any
 from torch import nn
-from torch.nn import functional as F
 from torch import optim
 
 import numpy as np
 import torch
-from torch import distributions
 
 from cs285.infrastructure import pytorch_util as ptu
 from cs285.policies.base_policy import BasePolicy
@@ -77,11 +75,12 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
     def get_action(self, obs: np.ndarray) -> np.ndarray:
         if len(obs.shape) > 1:
-            observation = ptu.from_numpy(obs)
+            observation = obs
         else:
-            observation = ptu.from_numpy(obs[None])
+            observation = obs[None]
 
         # TODO return the action that the policy prescribes
+        observation = ptu.from_numpy(observation.astype(np.float32))
         return ptu.to_numpy(self.forward(observation))
 
     # update/train this policy
@@ -95,11 +94,9 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor) -> Any:
         if self.discrete:
-            pred = self.logits_na(observation)
+            return self.logits_na(observation)
         else:
-            pred = self.mean_net(observation)
-
-        return pred
+            return self.mean_net(observation)
 
 
 #####################################################

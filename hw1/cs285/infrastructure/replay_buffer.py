@@ -1,5 +1,8 @@
 from cs285.infrastructure.utils import *
 
+# Extra imports
+import numpy as np
+
 
 class ReplayBuffer(object):
 
@@ -77,7 +80,7 @@ class ReplayBuffer(object):
         # HINT 1: use np.random.permutation to sample random indices
         # HINT 2: return corresponding data points from each array (i.e., not different indices from each array)
         # HINT 3: look at the sample_recent_data function below
-        idx = np.random.permutation(batch_size)
+        idx = np.random.permutation(len(self.obs))[:batch_size]
         return (
             self.obs[idx],
             self.acs[idx],

@@ -11,7 +11,7 @@ MJ_ENV_KWARGS = {name: {"render_mode": "rgb_array"} for name in MJ_ENV_NAMES}
 MJ_ENV_KWARGS["Ant-v4"]["use_contact_forces"] = True
 
 
-def sample_trajectory(env:Env, policy:MLPPolicy, max_path_length, render=False):
+def sample_trajectory(env: Env, policy: MLPPolicy, max_path_length, render=False):
 
     # initialize env for the beginning of a new rollout
     # TODO: Don't know if we should set the seed in this one
@@ -32,7 +32,8 @@ def sample_trajectory(env:Env, policy:MLPPolicy, max_path_length, render=False):
 
         # use the most recent ob to decide what to do
         obs.append(ob)
-        ac = policy.get_action(ob)  # HINT: query the policy's get_action function
+        # HINT: query the policy's get_action function
+        ac = policy.get_action(ob)
         ac = ac[0]
         acs.append(ac)
 
@@ -46,8 +47,9 @@ def sample_trajectory(env:Env, policy:MLPPolicy, max_path_length, render=False):
 
         # TODO end the rollout if the rollout ended
         # HINT: rollout can end due to done, or due to max_path_length
-        # Using logic from get path length 
-        rollout_done = (done or len(rewards)>=max_path_length)  # HINT: this is either 0 or 1
+        # Using logic from get path length
+        # HINT: this is either 0 or 1
+        rollout_done = (done or len(rewards) >= max_path_length)
         terminals.append(rollout_done)
 
         if rollout_done:

@@ -180,7 +180,7 @@ class RL_Trainer(object):
         # HINT2: you want each of these collected rollouts to be of length self.params['ep_len']
         print("\nCollecting data to be used for training...")
         paths, envsteps_this_batch = utils.sample_trajectories(
-            self.env, collect_policy, batch_size, self.params['ep_len'])
+            self.env, collect_policy, self.params['batch_size'], self.params['ep_len'])
 
         # collect more rollouts with the same policy, to be saved as videos in tensorboard
         # note: here, we collect MAX_NVIDEO rollouts, each of length MAX_VIDEO_LEN
@@ -218,9 +218,9 @@ class RL_Trainer(object):
         # TODO: relabel collected obsevations (from our policy) with labels from an expert policy
         # HINT: query the policy (using the get_action function) with paths[i]["observation"]
         # and replace paths[i]["action"] with these expert labels
-
-        for path in paths:
-            path["action"] = expert_policy.get_action(path["observation"])
+        for i in range(len(paths)):
+            expert_label = expert_policy.get_action(paths[i]["observation"])
+            paths[i]["action"] = expert_label
         return paths
 
     ####################################
