@@ -33,37 +33,35 @@ class PGAgent(BaseAgent):
         self.replay_buffer = ReplayBuffer(1000000)
 
     def train(self, observations, actions, rewards_list, next_observations, terminals):
-
         """
             Training a PG agent refers to updating its actor using the given observations/actions
             and the calculated qvals/advantages that come from the seen rewards.
         """
 
-        # TODO: update the PG actor/policy using the given batch of data 
+        # TODO: update the PG actor/policy using the given batch of data
         # using helper functions to compute qvals and advantages, and
         # return the train_log obtained from updating the policy
 
         return train_log
 
     def calculate_q_vals(self, rewards_list):
-
         """
             Monte Carlo estimation of the Q function.
         """
 
         # TODO: return the estimated qvals based on the given rewards, using
-            # either the full trajectory-based estimator or the reward-to-go
-            # estimator
+        # either the full trajectory-based estimator or the reward-to-go
+        # estimator
 
         # Note: rewards_list is a list of lists of rewards with the inner list
         # being the list of rewards for a single trajectory.
-        
+
         # HINT: use the helper functions self._discounted_return and
         # self._discounted_cumsum (you will need to implement these).
 
         # Case 1: trajectory-based PG
         # Estimate Q^{pi}(s_t, a_t) by the total discounted reward summed over entire trajectory
-        
+
         # Note: q_values should be a 2D numpy array where the first
         # dimension corresponds to trajectories and the second corresponds
         # to timesteps
@@ -79,7 +77,6 @@ class PGAgent(BaseAgent):
         return q_values
 
     def estimate_advantage(self, obs: np.ndarray, rews_list: np.ndarray, q_values: np.ndarray, terminals: np.ndarray):
-
         """
             Computes advantages by (possibly) using GAE, or subtracting a baseline from the estimated Q values
         """
@@ -88,38 +85,39 @@ class PGAgent(BaseAgent):
         # by querying the neural network that you're using to learn the value function
         if self.nn_baseline:
             values_unnormalized = self.actor.run_baseline_prediction(obs)
-            ## ensure that the value predictions and q_values have the same dimensionality
-            ## to prevent silent broadcasting errors
+            # ensure that the value predictions and q_values have the same dimensionality
+            # to prevent silent broadcasting errors
             assert values_unnormalized.ndim == q_values.ndim
-            ## TODO: values were trained with standardized q_values, so ensure
-                ## that the predictions have the same mean and standard deviation as
-                ## the current batch of q_values
+            # TODO: values were trained with standardized q_values, so ensure
+            # that the predictions have the same mean and standard deviation as
+            # the current batch of q_values
             values = TODO
 
             if self.gae_lambda is not None:
-                ## append a dummy T+1 value for simpler recursive calculation
+                # append a dummy T+1 value for simpler recursive calculation
                 values = np.append(values, [0])
 
-                ## combine rews_list into a single array
+                # combine rews_list into a single array
                 rews = np.concatenate(rews_list)
 
-                ## create empty numpy array to populate with GAE advantage
-                ## estimates, with dummy T+1 value for simpler recursive calculation
+                # create empty numpy array to populate with GAE advantage
+                # estimates, with dummy T+1 value for simpler recursive calculation
                 batch_size = obs.shape[0]
                 advantages = np.zeros(batch_size + 1)
 
                 for i in reversed(range(batch_size)):
-                    ## TODO: recursively compute advantage estimates starting from
-                        ## timestep T.
-                    ## HINT: use terminals to handle edge cases. terminals[i]
-                        ## is 1 if the state is the last in its trajectory, and
-                        ## 0 otherwise.
+                    # TODO: recursively compute advantage estimates starting from
+                    # timestep T.
+                    # HINT: use terminals to handle edge cases. terminals[i]
+                    # is 1 if the state is the last in its trajectory, and
+                    # 0 otherwise.
+                    raise NotImplementedError
 
                 # remove dummy advantage
                 advantages = advantages[:-1]
 
             else:
-                ## TODO: compute advantage estimates using q_values, and values as baselines
+                # TODO: compute advantage estimates using q_values, and values as baselines
                 advantages = TODO
 
         # Else, just set the advantage to [Q]
