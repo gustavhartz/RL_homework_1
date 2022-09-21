@@ -1,5 +1,6 @@
 import numpy as np
-
+# Weird it's not mentioned in comments
+from cs285.infrastructure.utils import normalize
 from .base_agent import BaseAgent
 from cs285.policies.MLP_policy import MLPPolicyPG
 from cs285.infrastructure.replay_buffer import ReplayBuffer
@@ -38,9 +39,18 @@ class PGAgent(BaseAgent):
             and the calculated qvals/advantages that come from the seen rewards.
         """
 
-        # TODO: update the PG actor/policy using the given batch of data
+        # TODO update the PG actor/policy using the given batch of data
         # using helper functions to compute qvals and advantages, and
         # return the train_log obtained from updating the policy
+
+        # Compute the Q values
+        q_vals = self.calculate_q_vals(rewards_list=rewards_list)
+        advantages = self.estimate_advantage(
+            observations, rewards_list, q_vals, terminals)
+
+        # Update the agent policy
+        train_log = self.actor.update(
+            observations, actions, advantages, q_vals)
 
         return train_log
 
@@ -49,7 +59,7 @@ class PGAgent(BaseAgent):
             Monte Carlo estimation of the Q function.
         """
 
-        # TODO: return the estimated qvals based on the given rewards, using
+        # TODO return the estimated qvals based on the given rewards, using
         # either the full trajectory-based estimator or the reward-to-go
         # estimator
 
@@ -67,12 +77,12 @@ class PGAgent(BaseAgent):
         # to timesteps
 
         if not self.reward_to_go:
-            TODO
+            q_values = self._discounted_return(rewards_list)
 
         # Case 2: reward-to-go PG
         # Estimate Q^{pi}(s_t, a_t) by the discounted sum of rewards starting from t
         else:
-            TODO
+            q_values = self._discounted_cumsum(rewards_list)
 
         return q_values
 
@@ -84,6 +94,7 @@ class PGAgent(BaseAgent):
         # Estimate the advantage when nn_baseline is True,
         # by querying the neural network that you're using to learn the value function
         if self.nn_baseline:
+            raise NotImplementedError
             values_unnormalized = self.actor.run_baseline_prediction(obs)
             # ensure that the value predictions and q_values have the same dimensionality
             # to prevent silent broadcasting errors
@@ -91,7 +102,7 @@ class PGAgent(BaseAgent):
             # TODO: values were trained with standardized q_values, so ensure
             # that the predictions have the same mean and standard deviation as
             # the current batch of q_values
-            values = TODO
+            values = "#TODO:"
 
             if self.gae_lambda is not None:
                 # append a dummy T+1 value for simpler recursive calculation
@@ -127,7 +138,8 @@ class PGAgent(BaseAgent):
         # Normalize the resulting advantages to have a mean of zero
         # and a standard deviation of one
         if self.standardize_advantages:
-            advantages = TODO
+            advantages = normalize(advantages, np.mean(
+                advantages), np.std(advantages))
 
         return advantages
 
@@ -152,6 +164,13 @@ class PGAgent(BaseAgent):
 
             Output: list where each index t contains sum_{t'=0}^T gamma^t' r_{t'}
         """
+        list_of_discounted_returns = np.ones(len(rewards))
+
+        # each element of the sum
+        _sum = sum([np.power(self.gamma, i)*rewards[i]
+                   for i in range(len(rewards))])
+        # Add sum to list of discounted returns
+        list_of_discounted_returns *= _sum
 
         return list_of_discounted_returns
 
@@ -160,6 +179,17 @@ class PGAgent(BaseAgent):
             Helper function which
             -takes a list of rewards {r_0, r_1, ..., r_t', ... r_T},
             -and returns a list where the entry in each index t' is sum_{t'=t}^T gamma^(t'-t) * r_{t'}
+
         """
+        list_of_discounted_cumsums = np.ones(len(rewards))
+        T = len(rewards)
+        for i in range(T):
+            _idx = np.arange(i, T)
+            _idx_zeroed = _idx - i
+            # Make sure stuff is correct
+            assert _idx_zeroed[0] == 0 and len(_idx) == len(_idx_zeroed)
+            _sum_step = np.sum(
+                np.power(self.gamma, _idx_zeroed) * rewards[_idx])
+            list_of_discounted_cumsums[i] = _sum_step
 
         return list_of_discounted_cumsums

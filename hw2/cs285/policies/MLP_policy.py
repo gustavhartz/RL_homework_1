@@ -1,5 +1,6 @@
 import abc
 import itertools
+from turtle import forward
 from torch import nn
 from torch.nn import functional as F
 from torch import optim
@@ -136,24 +137,38 @@ class MLPPolicyPG(MLPPolicy):
         actions = ptu.from_numpy(actions)
         advantages = ptu.from_numpy(advantages)
 
-        # TODO: update the policy using policy gradient
+        # TODO update the policy using policy gradient
         # HINT1: Recall that the expression that we want to MAXIMIZE
         # is the expectation over collected trajectories of:
         # sum_{t=0}^{T-1} [grad [log pi(a_t|s_t) * (Q_t - b_t)]]
         # HINT2: you will want to use the `log_prob` method on the distribution returned
         # by the `forward` method
 
-        TODO
+        # Negative since we want to maximize it
+        loss = - \
+            torch.sum(self.forward(observations).log_prob(actions)*advantages)
 
         if self.nn_baseline:
-            # TODO: update the neural network baseline using the q_values as
+            # TODO update the neural network baseline using the q_values as
             # targets. The q_values should first be normalized to have a mean
             # of zero and a standard deviation of one.
 
             # Note: You will need to convert the targets into a tensor using
             # ptu.from_numpy before using it in the loss
 
-            TODO
+            # Don't know if we need to update both networks but seems like we do
+            loss_base = self.baseline_loss(self.forward(
+                observations), ptu.from_numpy(q_values))
+            self.baseline_optimizer.zero_grad()
+            loss_base.backward()
+            self.baseline_optimizer.step()
+
+        # zero
+        self.optimizer.zero_grad()
+        # backpropagate
+        loss.backward()
+        # step
+        self.optimizer.step()
 
         train_log = {
             'Training Loss': ptu.to_numpy(loss),
