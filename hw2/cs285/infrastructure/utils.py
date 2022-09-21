@@ -1,6 +1,8 @@
 import numpy as np
 import time
 import copy
+from cs285.policies.MLP_policy import MLPPolicy
+from gym import Env
 
 ############################################
 ############################################
