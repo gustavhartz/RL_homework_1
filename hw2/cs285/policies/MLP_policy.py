@@ -95,7 +95,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
         # TODO return the action that the policy prescribes
         observation = ptu.from_numpy(observation.astype(np.float32))
-        return ptu.to_numpy(self.forward(observation))
+        return ptu.to_numpy(self.forward(observation).sample())
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
