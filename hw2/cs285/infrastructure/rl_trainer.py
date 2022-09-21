@@ -184,7 +184,7 @@ class RL_Trainer(object):
         # ``` return loaded_paths, 0, None ```
 
         # (2) collect `self.params['batch_size']` transitions
-        if itr < 1:
+        if itr < 1 and load_initial_expertdata:
             return pickle.load(open(load_initial_expertdata, "rb")), 0, None
 
         # TODO collect `batch_size` samples to be used for training
