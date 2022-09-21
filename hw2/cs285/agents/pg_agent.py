@@ -185,7 +185,7 @@ class PGAgent(BaseAgent):
         T = len(rewards)
         for i in range(T):
             _idx = np.arange(i, T)
-            _idx_zeroed = _idx - i
+            _idx_zeroed = np.arange(0, T-i)
             # Make sure stuff is correct
             assert _idx_zeroed[0] == 0 and len(_idx) == len(_idx_zeroed)
             _sum_step = np.sum(
