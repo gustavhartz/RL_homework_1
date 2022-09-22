@@ -78,15 +78,15 @@ class PGAgent(BaseAgent):
         # to timesteps
 
         if not self.reward_to_go:
-            q_values = self._discounted_return(rewards_list)
+            q_values = map(self._discounted_return, rewards_list)
 
         # Case 2: reward-to-go PG
         # Estimate Q^{pi}(s_t, a_t) by the discounted sum of rewards starting from t
         else:
-            q_values = list(map(self._discounted_cumsum, rewards_list))
+            q_values = map(self._discounted_cumsum, rewards_list)
 
         # concat arrays
-        return np.concatenate(q_values)
+        return np.concatenate(list(q_values))
 
     def estimate_advantage(self, obs: np.ndarray, rews_list: np.ndarray, q_values: np.ndarray, terminals: np.ndarray):
         """

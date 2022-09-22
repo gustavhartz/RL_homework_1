@@ -10,6 +10,7 @@ import torch
 from torch import distributions
 
 from cs285.infrastructure import pytorch_util as ptu
+from cs285.infrastructure.utils import normalize
 from cs285.policies.base_policy import BasePolicy
 
 
@@ -144,11 +145,20 @@ class MLPPolicyPG(MLPPolicy):
         # HINT2: you will want to use the `log_prob` method on the distribution returned
         # by the `forward` method
 
+        # zero
+        self.optimizer.zero_grad()
+
         # Negative since we want to maximize it
         loss = - \
             torch.sum(self.forward(observations).log_prob(actions)*advantages)
 
+        # backpropagate
+        loss.backward()
+        # step
+        self.optimizer.step()
+
         if self.nn_baseline:
+            # TODO: Unsure about the shapes here
             # TODO update the neural network baseline using the q_values as
             # targets. The q_values should first be normalized to have a mean
             # of zero and a standard deviation of one.
@@ -157,19 +167,25 @@ class MLPPolicyPG(MLPPolicy):
             # ptu.from_numpy before using it in the loss
 
             # Don't know if we need to update both networks but seems like we do
-            loss_base = self.baseline_loss(self.forward(
-                observations), ptu.from_numpy(q_values))
+
+            # Normalize q and make tensor
+            q_normed = ptu.from_numpy(
+                normalize(q_values, np.mean(q_values), np.std(q_values)))
+
+            # Zero optimizer
             self.baseline_optimizer.zero_grad()
+
+            # Calculate loss of forward pass in base network and normed q
+            loss_base = self.baseline_loss(
+                self.baseline(observations), q_normed)
+
+            # backprop loss
             loss_base.backward()
+
+            # Take step
             self.baseline_optimizer.step()
 
-        # zero
-        self.optimizer.zero_grad()
-        # backpropagate
-        loss.backward()
-        # step
-        self.optimizer.step()
-
+        # Only report main network loss
         train_log = {
             'Training Loss': ptu.to_numpy(loss),
         }
