@@ -4,6 +4,7 @@ from cs285.infrastructure.utils import normalize
 from .base_agent import BaseAgent
 from cs285.policies.MLP_policy import MLPPolicyPG
 from cs285.infrastructure.replay_buffer import ReplayBuffer
+from math import isclose
 
 
 class PGAgent(BaseAgent):
@@ -95,15 +96,27 @@ class PGAgent(BaseAgent):
         # Estimate the advantage when nn_baseline is True,
         # by querying the neural network that you're using to learn the value function
         if self.nn_baseline:
-            raise NotImplementedError
             values_unnormalized = self.actor.run_baseline_prediction(obs)
             # ensure that the value predictions and q_values have the same dimensionality
             # to prevent silent broadcasting errors
             assert values_unnormalized.ndim == q_values.ndim
-            # TODO: values were trained with standardized q_values, so ensure
+            # TODO values were trained with standardized q_values, so ensure
             # that the predictions have the same mean and standard deviation as
             # the current batch of q_values
-            values = "#TODO:"
+
+            # https://stats.stackexchange.com/questions/46429/transform-data-to-desired-mean-and-standard-deviation
+
+            # define values to use
+            q_mu = np.mean(q_values)
+            q_std = np.std(q_values)
+            v_mu = np.mean(values)
+            v_std = np.std(values)
+            # Calculate new set
+            values = values*(q_std/v_std)
+            values = values + q_mu-v_mu*(q_std/v_std)
+            # Assert correct
+            assert isclose(np.mean(values), q_mu, abs_tol=1e-4)
+            assert isclose(np.std(values), q_std, abs_tol=1e-4)
 
             if self.gae_lambda is not None:
                 # append a dummy T+1 value for simpler recursive calculation
@@ -118,19 +131,27 @@ class PGAgent(BaseAgent):
                 advantages = np.zeros(batch_size + 1)
 
                 for i in reversed(range(batch_size)):
-                    # TODO: recursively compute advantage estimates starting from
+                    # TODO recursively compute advantage estimates starting from
                     # timestep T.
                     # HINT: use terminals to handle edge cases. terminals[i]
                     # is 1 if the state is the last in its trajectory, and
                     # 0 otherwise.
-                    raise NotImplementedError
+
+                    # Edgecase where we don't have the values[i+1]
+                    if terminals[i] == 1:
+                        advantages[i] = rews[i]-values[i]
+                        continue
+                    # The ordinary case as described by (21) in the problem formulation
+                    delta_t = (rews[i] + self.gamma * values[i+1] - values[i])
+                    advantages[i] = delta_t + self.gamma * \
+                        self.gae_lambda*advantages[i+1]
 
                 # remove dummy advantage
                 advantages = advantages[:-1]
 
             else:
-                # TODO: compute advantage estimates using q_values, and values as baselines
-                advantages = TODO
+                # TODO compute advantage estimates using q_values, and values as baselines
+                advantages = q_values-values
 
         # Else, just set the advantage to [Q]
         else:
