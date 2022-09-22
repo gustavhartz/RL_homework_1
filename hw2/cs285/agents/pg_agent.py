@@ -82,9 +82,10 @@ class PGAgent(BaseAgent):
         # Case 2: reward-to-go PG
         # Estimate Q^{pi}(s_t, a_t) by the discounted sum of rewards starting from t
         else:
-            q_values = self._discounted_cumsum(rewards_list)
+            q_values = list(map(self._discounted_cumsum, rewards_list))
 
-        return q_values
+        # concat arrays
+        return np.concatenate(q_values)
 
     def estimate_advantage(self, obs: np.ndarray, rews_list: np.ndarray, q_values: np.ndarray, terminals: np.ndarray):
         """
@@ -181,15 +182,12 @@ class PGAgent(BaseAgent):
             -and returns a list where the entry in each index t' is sum_{t'=t}^T gamma^(t'-t) * r_{t'}
 
         """
-        list_of_discounted_cumsums = np.ones(len(rewards))
+        list_of_discounted_cumsums = []
         T = len(rewards)
         for i in range(T):
             _idx = np.arange(i, T)
-            _idx_zeroed = np.arange(0, T-i)
-            # Make sure stuff is correct
-            assert _idx_zeroed[0] == 0 and len(_idx) == len(_idx_zeroed)
             _sum_step = np.sum(
-                np.power(self.gamma, _idx_zeroed) * rewards[_idx])
-            list_of_discounted_cumsums[i] = _sum_step
+                np.power(self.gamma, _idx-i) * rewards[_idx])
+            list_of_discounted_cumsums.append(_sum_step)
 
-        return list_of_discounted_cumsums
+        return np.array(list_of_discounted_cumsums)
