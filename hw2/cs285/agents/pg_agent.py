@@ -109,10 +109,10 @@ class PGAgent(BaseAgent):
             # define values to use
             q_mu = np.mean(q_values)
             q_std = np.std(q_values)
-            v_mu = np.mean(values)
-            v_std = np.std(values)
+            v_mu = np.mean(values_unnormalized)
+            v_std = np.std(values_unnormalized)
             # Calculate new set
-            values = values*(q_std/v_std)
+            values = values_unnormalized*(q_std/v_std)
             values = values + q_mu-v_mu*(q_std/v_std)
             # Assert correct
             assert isclose(np.mean(values), q_mu, abs_tol=1e-4)
