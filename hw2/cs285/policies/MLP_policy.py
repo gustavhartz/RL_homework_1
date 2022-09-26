@@ -153,7 +153,7 @@ class MLPPolicyPG(MLPPolicy):
 
         # Negative since we want to maximize it
         loss = - \
-            torch.sum(self.forward(observations).log_prob(actions)*advantages)
+            torch.mean(self.forward(observations).log_prob(actions)*advantages)
 
         # backpropagate
         loss.backward()
