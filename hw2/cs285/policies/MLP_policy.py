@@ -10,8 +10,11 @@ import torch
 from torch import distributions
 
 from cs285.infrastructure import pytorch_util as ptu
-from cs285.infrastructure.utils import normalize
 from cs285.policies.base_policy import BasePolicy
+
+
+def normalize(data, mean, std, eps=1e-8):
+    return (data-mean)/(std+eps)
 
 
 class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
