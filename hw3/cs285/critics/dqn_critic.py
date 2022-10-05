@@ -63,10 +63,11 @@ class DQNCritic(BaseCritic):
         terminal_n = ptu.from_numpy(terminal_n)
 
         qa_t_values = self.q_net(ob_no)
-        q_t_values = torch.gather(qa_t_values, 1, ac_na.unsqueeze(1)).squeeze(1)
-        
-        # TODO compute the Q-values from the target network 
-        qa_tp1_values = TODO
+        q_t_values = torch.gather(
+            qa_t_values, 1, ac_na.unsqueeze(1)).squeeze(1)
+
+        # TODO compute the Q-values from the target network
+        qa_tp1_values = self.q_net_target(next_ob_no)
 
         if self.double_q:
             # You must fill this part for Q2 of the Q-learning portion of the homework.
@@ -74,14 +75,16 @@ class DQNCritic(BaseCritic):
             # is being updated, but the Q-value for this action is obtained from the
             # target Q-network. Please review Lecture 8 for more details,
             # and page 4 of https://arxiv.org/pdf/1509.06461.pdf is also a good reference.
-            TODO
+            dq_ac = self.q_net(next_ob_no).argmax(dim=1)
+            q_tp1 = torch.gather(
+                qa_tp1_values, 1, dq_ac.unsqueeze(1)).squeeze(1)
         else:
             q_tp1, _ = qa_tp1_values.max(dim=1)
 
         # TODO compute targets for minimizing Bellman error
         # HINT: as you saw in lecture, this would be:
             #currentReward + self.gamma * qValuesOfNextTimestep * (not terminal)
-        target = TODO
+        target = reward_n + self.gamma*q_tp1 * (1-terminal_n)
         target = target.detach()
 
         assert q_t_values.shape == target.shape
@@ -89,7 +92,8 @@ class DQNCritic(BaseCritic):
 
         self.optimizer.zero_grad()
         loss.backward()
-        utils.clip_grad_value_(self.q_net.parameters(), self.grad_norm_clipping)
+        utils.clip_grad_value_(self.q_net.parameters(),
+                               self.grad_norm_clipping)
         self.optimizer.step()
 
         return {
