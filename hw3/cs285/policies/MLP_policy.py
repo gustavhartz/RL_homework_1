@@ -1,7 +1,6 @@
 import abc
 import itertools
 from torch import nn
-from torch.nn import functional as F
 from torch import optim
 
 import numpy as np
@@ -10,7 +9,6 @@ from torch import distributions
 
 from cs285.infrastructure import pytorch_util as ptu
 from cs285.policies.base_policy import BasePolicy
-from cs285.infrastructure.utils import normalize
 
 
 class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
@@ -129,5 +127,22 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
 class MLPPolicyAC(MLPPolicy):
     def update(self, observations, actions, adv_n=None):
-        # TODO: update the policy and return the loss
-        return loss.item()
+        # TODO update the policy and return the loss
+        observations = ptu.from_numpy(observations)
+        actions = ptu.from_numpy(actions)
+        adv_n = ptu.from_numpy(adv_n)
+
+        # Zero grad
+        self.optimizer.zero_grad()
+
+        # Get action distribution
+        act_dist = self.forward(observations)
+
+        # Calculate the loss
+        loss = -act_dist.log_prob(actions) * adv_n
+        loss = loss.sum()
+
+        # Update network
+        loss.backward()
+        self.optimizer.step()
+        return ptu.to_numpy(loss)
