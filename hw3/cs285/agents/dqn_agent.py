@@ -51,7 +51,7 @@ class DQNAgent(object):
         eps = self.exploration.value(self.t)
 
         # TODO use epsilon greedy exploration when selecting action
-        perform_random_action = (eps < np.random.rand()) or (
+        perform_random_action = (np.random.rand() < eps) or (
             self.t < self.learning_starts)
         if perform_random_action:
             # HINT: take random action (can sample from self.env.action_space)
@@ -70,7 +70,7 @@ class DQNAgent(object):
         # HINT1: remember that self.last_obs must always point to the newest/latest observation
         # HINT2: remember the following useful function that you've seen before:
             #obs, reward, done, info = env.step(action)
-        obs, reward, done, info = self.env.step(action)
+        obs, reward, done, _ = self.env.step(action)
         # hint 1 done below
 
         # TODO store the result of taking this action into the replay buffer
@@ -110,7 +110,7 @@ class DQNAgent(object):
             # TODO update the target network periodically
             # HINT: your critic already has this functionality implemented
             if self.num_param_updates % self.target_update_freq == 0:
-                self.actor.critic.update_target_network()
+                self.critic.update_target_network()
 
             self.num_param_updates += 1
 
