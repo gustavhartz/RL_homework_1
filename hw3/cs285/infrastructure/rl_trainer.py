@@ -317,10 +317,6 @@ class RL_Trainer(object):
 
         if itr == 0 and load_initial_expertdata:
             return pickle.load(open(load_initial_expertdata, "rb")), 0, None
-        elif itr == 0:
-            num_transitions_to_sample = self.params['batch_size_initial']
-        else:
-            num_transitions_to_sample = self.params['batch_size']
 
         print("\nCollecting data to be used for training...")
         paths, envsteps_this_batch = utils.sample_trajectories(
