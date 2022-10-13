@@ -62,7 +62,6 @@ def mean_squared_error(a, b):
 def sample_trajectory(env: Env, policy, max_path_length, render=False):
 
     # initialize env for the beginning of a new rollout
-    # TODO: Don't know if we should set the seed in this one
     ob = env.reset()  # HINT: should be the output of resetting the env
 
     # init vars
@@ -97,7 +96,7 @@ def sample_trajectory(env: Env, policy, max_path_length, render=False):
         # HINT: rollout can end due to done, or due to max_path_length
         # Using logic from get path length
         # HINT: this is either 0 or 1
-        rollout_done = (done or len(rewards) >= max_path_length)
+        rollout_done = (done) or (len(rewards) >= max_path_length)
         terminals.append(rollout_done)
 
         if rollout_done:
@@ -133,7 +132,6 @@ def sample_n_trajectories(env, policy, ntraj, max_path_length, render=False):
     """
     paths = []
 
-    # TODO: Still don't know what the min timesteps_per_batch is located - maybe in env
     for i in range(ntraj):
         _path = sample_trajectory(env, policy, max_path_length, render)
         paths.append(_path)

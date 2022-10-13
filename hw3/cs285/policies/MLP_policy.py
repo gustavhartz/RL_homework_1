@@ -141,7 +141,7 @@ class MLPPolicyAC(MLPPolicy):
         # Calculate the loss
         loss = -act_dist.log_prob(actions) * adv_n
         # TODO: Maybe we need to scale with the number of trajectories
-        loss = loss.sum()
+        loss = loss.mean()
 
         # Update network
         loss.backward()
