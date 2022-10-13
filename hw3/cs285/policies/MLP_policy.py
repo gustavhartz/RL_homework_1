@@ -93,7 +93,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
         # TODO return the action that the policy prescribes
         observation = ptu.from_numpy(observation.astype(np.float32))
-        return ptu.to_numpy(self.forward(observation).sample())
+        return ptu.to_numpy(self(observation).sample())
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
@@ -136,10 +136,11 @@ class MLPPolicyAC(MLPPolicy):
         self.optimizer.zero_grad()
 
         # Get action distribution
-        act_dist = self.forward(observations)
+        act_dist = self(observations)
 
         # Calculate the loss
         loss = -act_dist.log_prob(actions) * adv_n
+        # TODO: Maybe we need to scale with the number of trajectories
         loss = loss.sum()
 
         # Update network
