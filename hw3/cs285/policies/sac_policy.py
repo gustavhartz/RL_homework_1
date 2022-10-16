@@ -46,7 +46,7 @@ class MLPPolicySAC(MLPPolicy):
     def get_action(self, obs: np.ndarray, sample=True) -> np.ndarray:
         # TODO: return sample from distribution if sampling
         # if not sampling return the mean of the distribution
-        distribution = self(obs)
+        distribution = self(ptu.from_numpy(obs))
 
         if sample:
             action = distribution.sample()
