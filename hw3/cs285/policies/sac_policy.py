@@ -67,10 +67,6 @@ class MLPPolicySAC(MLPPolicy):
     # `torch.distributions.Distribution` object. It's up to you!
 
     def forward(self, observation: torch.FloatTensor):
-        # TODO: Implement pass through network, computing logprobs and apply correction for Tanh squashing
-        self.logstd.tanh()
-        super()(observation)
-
         # HINT:
         # You will need to clip log values
         # You will need SquashedNormal from sac_utils file
