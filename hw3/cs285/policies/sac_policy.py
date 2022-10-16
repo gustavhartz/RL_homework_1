@@ -83,7 +83,7 @@ class MLPPolicySAC(MLPPolicy):
             log_std_min, log_std_max = self.log_std_bounds[0], self.log_std_bounds[1]
 
             clipped_log_std = torch.exp(
-                self.log_std.clamp(min=log_std_min, max=log_std_max))
+                self.logstd.clamp(min=log_std_min, max=log_std_max))
             # Create squashed normal
             action_distribution = sac_utils.SquashedNormal(
                 batch_mu, clipped_log_std)
