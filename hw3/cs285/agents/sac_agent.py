@@ -107,7 +107,8 @@ class SACAgent(BaseAgent):
         alpha = self.actor.alpha
         if self.training_step % self.actor_update_frequency == 0:
             for i in range(self.agent_params['num_actor_updates_per_agent_update']):
-                act_l_t, alp_l_t, alpha = self.actor.update(ob_no, self.critic)
+                act_l_t, alp_l_t, alpha = self.actor.update(
+                    ptu.from_numpy(ob_no), self.critic)
                 actor_l += act_l_t
                 alpha_l += alp_l_t
 
