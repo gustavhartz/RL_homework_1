@@ -60,15 +60,16 @@ class SACAgent(BaseAgent):
         with torch.no_grad():
             action_dist = self.actor(next_ob_no)
             act_t1 = action_dist.rsample()
-            act_t1_logprobs = action_dist.log_prob(act_t1)
+            act_t1_logprobs = action_dist.log_prob(act_t1).sum(1, keepdim=True)
 
             # Compute q
             n_q1, n_q2 = self.critic_target(next_ob_no, act_t1)
             n_q = torch.minimum(n_q1, n_q2)
+            target_v = (n_q - self.actor.alpha * act_t1_logprobs).squeeze(-1)
 
             # target
-            target = re_n + self.gamma * \
-                (1 - terminal_n) * (n_q - self.actor.alpha * act_t1_logprobs)
+            target = re_n + self.gamma * (1 - terminal_n) * target_v
+            target = target.unsqueeze(1)
 
         q1, q2 = self.critic(ob_no, ac_na)
 
