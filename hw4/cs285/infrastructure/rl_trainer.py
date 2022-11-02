@@ -14,6 +14,7 @@ from cs285.agents.mbpo_agent import MBPOAgent
 from cs285.infrastructure import pytorch_util as ptu
 from cs285.infrastructure import utils
 from cs285.infrastructure.logger import Logger
+from cs285.agents.sac_agent import SACAgent
 
 # register all of our envs
 from cs285.envs import register_envs
