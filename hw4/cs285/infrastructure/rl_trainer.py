@@ -222,10 +222,6 @@ class RL_Trainer(object):
 
         # collect more rollouts with the same policy, to be saved as videos in tensorboard
         train_video_paths = None
-        if self.logvideo:
-            print('\nCollecting train rollouts to be used for saving videos...')
-            train_video_paths = utils.sample_n_trajectories(
-                self.env, collect_policy, MAX_NVIDEO, MAX_VIDEO_LEN, True)
 
         if save_expert_data_to_disk and itr == 0:
             with open('expert_data_{}.pkl'.format(self.params['env_name']), 'wb') as file:
@@ -250,7 +246,14 @@ class RL_Trainer(object):
         # 1) sample a batch of data of size self.sac_params['train_batch_size'] with self.agent.sample_sac
         # 2) train the SAC agent self.agent.train_sac
         # HINT: This will look similar to train_agent above.
-        pass
+        all_logs = []
+        for train_step in range(self.params['num_agent_train_steps_per_iter']):
+            ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = self.agent.sample_sac(
+                self.params['train_batch_size'])
+            train_log = self.agent.train_sac(
+                ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch)
+            all_logs.append(train_log)
+        return all_logs
 
     ####################################
     ####################################
