@@ -151,6 +151,7 @@ class MPCPolicy(BasePolicy):
         N, H, D_action = candidate_action_sequences.shape
         sum_of_rewards = np.zeros((N,))
         # Horizon
+        obs = np.tile(obs, (self.N, 1))
         for idx in range(H):
             actions = candidate_action_sequences[:, idx, :]
             rewards, _ = self.env.get_reward(obs, actions)
