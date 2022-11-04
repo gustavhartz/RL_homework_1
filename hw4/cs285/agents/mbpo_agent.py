@@ -40,7 +40,7 @@ class MBPOAgent(BaseAgent):
 
             # query the reward function to determine the reward of this transition
             # HINT: use self.env.get_reward
-            rew, _ = self.env.get_reward(ob, ac)
+            rew, _ = self.env.get_reward(next_ob, ac)
 
             obs.append(ob[0])
             acs.append(ac[0])
