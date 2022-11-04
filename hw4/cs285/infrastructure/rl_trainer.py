@@ -1,16 +1,14 @@
 from collections import OrderedDict
 import pickle
-import os
-import sys
 import time
 
 import gym
-from gym import wrappers
 import numpy as np
 import torch
 
 from cs285.agents.mb_agent import MBAgent
 from cs285.agents.mbpo_agent import MBPOAgent
+from cs285.agents.sac_agent import SACAgent
 from cs285.infrastructure import pytorch_util as ptu
 from cs285.infrastructure import utils
 from cs285.infrastructure.logger import Logger
@@ -249,7 +247,7 @@ class RL_Trainer(object):
         # 2) train the SAC agent self.agent.train_sac
         # HINT: This will look similar to train_agent above.
         all_logs = []
-        for train_step in range(self.params['num_agent_train_steps_per_iter']):
+        for train_step in range(self.sac_params['num_agent_train_steps_per_iter']):
             ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = self.agent.sample_sac(
                 self.params['train_batch_size'])
             train_log = self.agent.train_sac(
