@@ -45,6 +45,7 @@ class MBAgent(BaseAgent):
         losses = []
         num_data = ob_no.shape[0]
         num_data_per_ens = int(num_data / self.ensemble_size)
+        rd_idx = np.random.permutation(num_data)
 
         for i in range(self.ensemble_size):
 
@@ -52,11 +53,10 @@ class MBAgent(BaseAgent):
             # you might find the num_data_per_env variable defined above useful
 
             # Segment data into batches
-            observations = ob_no[i *
-                                 num_data_per_ens: (i + 1) * num_data_per_ens]
-            actions = ac_na[i * num_data_per_ens: (i + 1) * num_data_per_ens]
-            next_observations = next_ob_no[i *
-                                           num_data_per_ens: (i + 1) * num_data_per_ens]
+            idx = rd_idx[i * num_data_per_ens: (i + 1) * num_data_per_ens]
+            observations = ob_no[idx]
+            actions = ac_na[idx]
+            next_observations = next_ob_no[idx]
 
             # use datapoints to update one of the dyn_models
             model = self.dyn_models[i]
