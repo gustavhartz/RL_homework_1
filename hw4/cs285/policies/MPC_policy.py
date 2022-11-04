@@ -75,10 +75,10 @@ class MPCPolicy(BasePolicy):
                     candidate_action_sequences, obs)
 
                 elite_acs = candidate_action_sequences[np.argsort(
-                    reward_acs)[-self.cem_num_elites:], :]
+                    reward_acs)[-self.cem_num_elites:], :, :]
 
-                elite_acs_cur_mean = np.mean(elite_acs)
-                elite_acs_cur_std = np.std(elite_acs)
+                elite_acs_cur_mean = np.mean(elite_acs, axis=0)
+                elite_acs_cur_std = np.std(elite_acs, axis=0)
 
                 elite_means = self.cem_alpha*elite_acs_cur_mean + \
                     (1-self.cem_alpha)*elite_means
@@ -112,7 +112,7 @@ class MPCPolicy(BasePolicy):
             res_acc.append(self.calculate_sum_of_rewards(
                 obs, candidate_action_sequences, model))
 
-        return np.mean(res_acc, axis=0)
+        return np.mean(np.array(res_acc), axis=0)
 
     def get_action(self, obs):
         if self.data_statistics is None:
