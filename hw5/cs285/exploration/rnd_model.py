@@ -13,8 +13,10 @@ def init_method_1(model):
     Args:
         model (_type_): _description_
     """
-    model.weight.data.uniform_()
-    model.bias.data.uniform_()
+    for module in model:
+        if isinstance(module, nn.Linear):
+            module.weight.data.uniform_()
+            module.bias.data.uniform_()
 
 
 def init_method_2(model):
@@ -23,8 +25,10 @@ def init_method_2(model):
     Args:
         model (_type_): _description_
     """
-    model.weight.data.normal_()
-    model.bias.data.normal_()
+    for module in model:
+        if isinstance(module, nn.Linear):
+            module.weight.data.normal_()
+            module.bias.data.normal_()
 
 
 class RNDModel(nn.Module, BaseExplorationModel):
@@ -59,6 +63,8 @@ class RNDModel(nn.Module, BaseExplorationModel):
     def forward(self, ob_no):
         # <DONE>: Get the prediction error for ob_no
         # HINT: Remember to detach the output of self.f!
+        if isinstance(ob_no, np.ndarray):
+            ob_no = ptu.from_numpy(ob_no)
         target = self.f(ob_no).detach()
         pred = self.f_hat(ob_no)
 

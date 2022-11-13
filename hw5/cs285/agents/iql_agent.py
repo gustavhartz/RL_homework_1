@@ -90,8 +90,8 @@ class IQLAgent(DQNAgent):
             # TODO: Run Exploration Model #
             # Evaluate the exploration model on s to get the exploration bonus
             # HINT: Normalize the exploration bonus, as RND values vary highly in magnitude
-            exploration_bonus = self.exploration_model.forward_np(next_ob_no)
-            if not isinstance(exploration_bonus, np.array):
+            exploration_bonus = self.exploration_model(ob_no)
+            if not isinstance(exploration_bonus, (np.ndarray, np.generic)):
                 exploration_bonus = ptu.to_numpy(exploration_bonus)
 
             if self.normalize_rnd:
@@ -103,7 +103,7 @@ class IQLAgent(DQNAgent):
                     self.rnd_gamma + exp_bonus_std * (1 - self.rnd_gamma)
 
                 exploration_bonus = normalize(
-                    expl_bonus, exp_bonus_mean, self.running_rnd_rew_std)
+                    exploration_bonus, exp_bonus_mean, self.running_rnd_rew_std)
 
             expl_bonus = exploration_bonus
 

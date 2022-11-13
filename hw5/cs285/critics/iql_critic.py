@@ -8,6 +8,7 @@ import numpy as np
 
 from cs285.infrastructure import pytorch_util as ptu
 
+
 class IQLCritic(BaseCritic):
 
     def __init__(self, hparams, optimizer_spec, **kwargs):
@@ -41,7 +42,7 @@ class IQLCritic(BaseCritic):
         self.mse_loss = nn.MSELoss()
         self.q_net.to(ptu.device)
         self.q_net_target.to(ptu.device)
-        
+
         # TODO define value function
         # HINT: see Q_net definition above and optimizer below
         ### YOUR CODE HERE ###
@@ -51,7 +52,7 @@ class IQLCritic(BaseCritic):
             self.v_net.parameters(),
             **self.optimizer_spec.optim_kwargs
         )
-        self.learning_rate_scheduler_v  = optim.lr_scheduler.LambdaLR(
+        self.learning_rate_scheduler_v = optim.lr_scheduler.LambdaLR(
             self.v_optimizer,
             self.optimizer_spec.learning_rate_schedule,
         )
@@ -69,20 +70,19 @@ class IQLCritic(BaseCritic):
         """
         ob_no = ptu.from_numpy(ob_no)
         ac_na = ptu.from_numpy(ac_na).to(torch.long)
-        
 
         ### YOUR CODE HERE ###
         value_loss = None
-        
+
         assert value_loss.shape == ()
         self.v_optimizer.zero_grad()
         value_loss.backward()
-        utils.clip_grad_value_(self.v_net.parameters(), self.grad_norm_clipping)
+        utils.clip_grad_value_(self.v_net.parameters(),
+                               self.grad_norm_clipping)
         self.v_optimizer.step()
         self.learning_rate_scheduler_v.step()
 
         return {'Training V Loss': ptu.to_numpy(value_loss)}
-
 
     def update_q(self, ob_no, ac_na, next_ob_no, reward_n, terminal_n):
         """
@@ -93,14 +93,15 @@ class IQLCritic(BaseCritic):
         next_ob_no = ptu.from_numpy(next_ob_no)
         reward_n = ptu.from_numpy(reward_n)
         terminal_n = ptu.from_numpy(terminal_n)
-        
+
         ### YOUR CODE HERE ###
         loss = None
 
         assert loss.shape == ()
         self.optimizer.zero_grad()
         loss.backward()
-        utils.clip_grad_value_(self.q_net.parameters(), self.grad_norm_clipping)
+        utils.clip_grad_value_(self.q_net.parameters(),
+                               self.grad_norm_clipping)
         self.optimizer.step()
 
         self.learning_rate_scheduler.step()

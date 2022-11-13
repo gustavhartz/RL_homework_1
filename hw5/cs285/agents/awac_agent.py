@@ -91,21 +91,21 @@ class AWACAgent(DQNAgent):
             self.actor.set_critic(self.exploitation_critic)
 
         if (self.t > self.learning_starts
-            and self.t % self.learning_freq == 0
-            and self.replay_buffer.can_sample(self.batch_size)
-            ):
+                and self.t % self.learning_freq == 0
+                and self.replay_buffer.can_sample(self.batch_size)
+                ):
             # TODO: Get Reward Weights
             # Get the current explore reward weight and exploit reward weight
             #       using the schedule's passed in (see __init__)
             # COMMENT: Until part 3, explore_weight = 1, and exploit_weight = 0
-            explore_weight = self.explore_weight_schedule
-            exploit_weight = self.exploit_weight_schedule
+            explore_weight = self.explore_weight_schedule.value(self.t)
+            exploit_weight = self.exploit_weight_schedule.value(self.t)
 
             # TODO: Run Exploration Model #
             # Evaluate the exploration model on s' to get the exploration bonus
             # HINT: Normalize the exploration bonus, as RND values vary highly in magnitude
-            exploration_bonus = self.exploration_model.forward_np(next_ob_no)
-            if not isinstance(exploration_bonus, np.array):
+            exploration_bonus = self.exploration_model(ob_no)
+            if not isinstance(exploration_bonus, (np.ndarray, np.generic)):
                 exploration_bonus = ptu.to_numpy(exploration_bonus)
 
             if self.normalize_rnd:
@@ -117,7 +117,7 @@ class AWACAgent(DQNAgent):
                     self.rnd_gamma + exp_bonus_std * (1 - self.rnd_gamma)
 
                 exploration_bonus = normalize(
-                    expl_bonus, exp_bonus_mean, self.running_rnd_rew_std)
+                    exploration_bonus, exp_bonus_mean, self.running_rnd_rew_std)
 
             expl_bonus = exploration_bonus
 

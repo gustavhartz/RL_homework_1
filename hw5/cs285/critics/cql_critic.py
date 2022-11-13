@@ -3,7 +3,7 @@ import torch
 import torch.optim as optim
 from torch.nn import utils
 from torch import nn
-import pdb
+import numpy as np
 
 from cs285.infrastructure import pytorch_util as ptu
 
@@ -46,11 +46,16 @@ class CQLCritic(BaseCritic):
         """ Implement DQN Loss """
 
         # Copied from previous homework
-        ob_no = ptu.from_numpy(ob_no)
-        ac_na = ptu.from_numpy(ac_na).to(torch.long)
-        next_ob_no = ptu.from_numpy(next_ob_no)
-        reward_n = ptu.from_numpy(reward_n)
-        terminal_n = ptu.from_numpy(terminal_n)
+        if isinstance(ob_no, np.ndarray):
+            ob_no = ptu.from_numpy(ob_no)
+        if isinstance(ac_na, np.ndarray):
+            ac_na = ptu.from_numpy(ac_na).to(torch.long)
+        if isinstance(next_ob_no, np.ndarray):
+            next_ob_no = ptu.from_numpy(ob_no)
+        if isinstance(reward_n, np.ndarray):
+            reward_n = ptu.from_numpy(ob_no)
+        if isinstance(terminal_n, np.ndarray):
+            terminal_n = ptu.from_numpy(ob_no)
 
         qa_t_values = self.q_net(ob_no)
         q_t_values = torch.gather(
