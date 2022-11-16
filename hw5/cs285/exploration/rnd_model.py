@@ -2,9 +2,8 @@ from cs285.infrastructure import pytorch_util as ptu
 from .base_exploration_model import BaseExplorationModel
 import torch.optim as optim
 from torch import nn
-import torch
-from collections import OrderedDict
 import numpy as np
+from torch import linalg as LA
 
 
 def init_method_1(model):
@@ -13,10 +12,8 @@ def init_method_1(model):
     Args:
         model (_type_): _description_
     """
-    for module in model:
-        if isinstance(module, nn.Linear):
-            module.weight.data.uniform_()
-            module.bias.data.uniform_()
+    model.weight.data.uniform_()
+    model.bias.data.uniform_()
 
 
 def init_method_2(model):
@@ -25,10 +22,8 @@ def init_method_2(model):
     Args:
         model (_type_): _description_
     """
-    for module in model:
-        if isinstance(module, nn.Linear):
-            module.weight.data.normal_()
-            module.bias.data.normal_()
+    model.weight.data.normal_()
+    model.bias.data.normal_()
 
 
 class RNDModel(nn.Module, BaseExplorationModel):
@@ -45,20 +40,21 @@ class RNDModel(nn.Module, BaseExplorationModel):
         # 2) f_hat, the function we are using to learn f
         self.f = ptu.build_mlp(input_size=self.ob_dim,
                                output_size=self.output_size,
-                               n_layers=self.n_layers, size=self.size)
+                               n_layers=self.n_layers, size=self.size, init_method=init_method_1)
         self.f_hat = ptu.build_mlp(input_size=self.ob_dim,
                                    output_size=self.output_size,
-                                   n_layers=self.n_layers, size=self.size)
-
-        # Init networks differently
-        init_method_2(self.f_hat)
-        init_method_1(self.f)
+                                   n_layers=self.n_layers, size=self.size, init_method=init_method_2)
 
         # Optimizer
         self.optimizer = self.optimizer_spec.constructor(
             self.f_hat.parameters(),
             **self.optimizer_spec.optim_kwargs
         )
+        self.learning_rate_scheduler = optim.lr_scheduler.LambdaLR(
+            self.optimizer, self.optimizer_spec.learning_rate_schedule)
+        # GPU enable
+        self.f.to(ptu.device)
+        self.f_hat.to(ptu.device)
 
     def forward(self, ob_no):
         # <DONE>: Get the prediction error for ob_no
@@ -69,7 +65,7 @@ class RNDModel(nn.Module, BaseExplorationModel):
         pred = self.f_hat(ob_no)
 
         # Return the L2 loss
-        return ((pred - target)**2).sum(dim=1)
+        return LA.norm(pred - target, dim=1)
 
     def forward_np(self, ob_no):
         ob_no = ptu.from_numpy(ob_no)
