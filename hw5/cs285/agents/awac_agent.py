@@ -53,7 +53,7 @@ class AWACAgent(DQNAgent):
         # get q-value for a given critic, obs, and action
         qa_t_values = critic.q_net(obs)
         q_t_values = torch.gather(
-            qa_t_values, 1, action.unsqueeze(1)).squeeze(1)
+            qa_t_values, 1, action.type(torch.int64).unsqueeze(1)).squeeze(1)
         return q_t_values
 
     def estimate_advantage(self, ob_no, ac_na, re_n, next_ob_no, terminal_n, n_actions=10):
@@ -73,7 +73,7 @@ class AWACAgent(DQNAgent):
         # HINT: You may find it helpful to utilze get_qvals defined above
         if self.agent_params['discrete']:
             for i in range(self.agent_params['ac_dim']):
-                act = (torch.ones(self.agent_params['batch_size'])*i).long()
+                act = torch.ones(self.agent_params['batch_size'])*i
                 val = self.get_qvals(
                     self.exploitation_critic, ob_no, act) * torch.exp(dist.log_prob(act))
                 vals.append(val)
