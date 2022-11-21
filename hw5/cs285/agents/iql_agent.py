@@ -67,7 +67,8 @@ class IQLAgent(DQNAgent):
         terminal_n = ptu.from_numpy(terminal_n)
 
         v_pi = self.get_qvals(self.exploitation_critic, ob_no, use_v=True)
-        return self.get_qvals(self.exploitation_critic, ob_no, ac_na) - v_pi
+        q_values = self.get_qvals(self.exploitation_critic, ob_no, ac_na)
+        return q_values - v_pi
 
     def train(self, ob_no, ac_na, re_n, next_ob_no, terminal_n):
         log = {}
@@ -78,8 +79,8 @@ class IQLAgent(DQNAgent):
             self.actor.set_critic(self.exploitation_critic)
 
         if (self.t > self.learning_starts
-                and self.t % self.learning_freq == 0
-                and self.replay_buffer.can_sample(self.batch_size)
+            and self.t % self.learning_freq == 0
+            and self.replay_buffer.can_sample(self.batch_size)
             ):
 
             # TODO: Get Reward Weights
@@ -98,12 +99,12 @@ class IQLAgent(DQNAgent):
                 exp_bonus_mean = exploration_bonus.mean()
                 exp_bonus_std = exploration_bonus.std()
 
+                exploration_bonus = normalize(
+                    exploration_bonus, exp_bonus_mean, self.running_rnd_rew_std)
+
                 # Exp moving avg
                 self.running_rnd_rew_std = self.running_rnd_rew_std * \
                     self.rnd_gamma + exp_bonus_std * (1 - self.rnd_gamma)
-
-                exploration_bonus = normalize(
-                    exploration_bonus, exp_bonus_mean, self.running_rnd_rew_std)
 
             expl_bonus = exploration_bonus
 
@@ -116,10 +117,8 @@ class IQLAgent(DQNAgent):
             # HINT: For part 1, env_reward is just 're_n'
             #       After this, env_reward is 're_n' shifted by self.exploit_rew_shift,
             #       and scaled by self.exploit_rew_scale
-            env_reward = re_n
-            if (self.offline_exploitation) or (self.t > self.num_exploration_steps):
-                env_reward = (re_n + self.exploit_rew_shift) * \
-                    self.exploit_rew_scale
+            env_reward = (re_n + self.exploit_rew_shift) * \
+                self.exploit_rew_scale
 
             # TODO: Update Critics And Exploration Model #
             # 1): Update the exploration model (based off s')
@@ -127,6 +126,7 @@ class IQLAgent(DQNAgent):
             # 3): a) Update the exploitation critic's Value function
             # 3): b) Update the exploitation critic's Q function (based off env_reward)
             expl_model_loss = self.exploration_model.update(next_ob_no)
+
             exploration_critic_loss = self.exploration_critic.update(
                 ob_no, ac_na, next_ob_no, mixed_reward, terminal_n)
 
@@ -149,8 +149,8 @@ class IQLAgent(DQNAgent):
 
             # Logging #
             log['Exploration Critic Loss'] = exploration_critic_loss['Training Loss']
-            log['Exploitation Critic V Loss'] = exploitation_critic_loss['Training Q Loss']
-            log['Exploitation Critic Q Loss'] = exploitation_critic_loss['Training V Loss']
+            log['Exploitation Critic V Loss'] = exploitation_critic_loss['Training V Loss']
+            log['Exploitation Critic Q Loss'] = exploitation_critic_loss['Training Q Loss']
             log['Exploration Model Loss'] = expl_model_loss
 
             # <DONE>: Uncomment these lines after completing awac
