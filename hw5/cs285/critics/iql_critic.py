@@ -80,7 +80,6 @@ class IQLCritic(BaseCritic):
         q = torch.gather(qa_t_n, 1, ac_na.type(torch.int64).unsqueeze(1))
 
         value_loss = self.expectile_loss(q.detach() - v)
-
         assert value_loss.shape == ()
         self.v_optimizer.zero_grad()
         value_loss.backward()
@@ -103,14 +102,11 @@ class IQLCritic(BaseCritic):
 
         ### YOUR CODE HERE ###
         q_vals = torch.gather(self.q_net(ob_no), 1,
-                              ac_na.type(torch.int64).unsqueeze(1))
-        v_vals = self.v_net(next_ob_no)
+                              ac_na.type(torch.int64).unsqueeze(1)).squeeze()
+        v_vals = self.v_net(next_ob_no).squeeze(1).detach()
 
-        targets = reward_n.unsqueeze(
-            1) + self.gamma * v_vals * (1 - terminal_n)
-
-        loss = self.mse_loss(q_vals, targets.detach())
-
+        targets = reward_n + self.gamma * v_vals * (1 - terminal_n)
+        loss = self.mse_loss(q_vals, targets)
         assert loss.shape == ()
         self.optimizer.zero_grad()
         loss.backward()
